@@ -1,4 +1,4 @@
-# C-Projects
+# C++ Projects
 This repository contains projects written in C++. The static source code analyzer
 was developed with one other student, and all other projects were developed by me
 independently. 
