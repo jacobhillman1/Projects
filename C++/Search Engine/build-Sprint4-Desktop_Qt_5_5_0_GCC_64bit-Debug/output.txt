@@ -1,0 +1,35 @@
+OR articleonetwo NOT articletwo
+1|april|https://simple.wikipedia.org/wiki?curid=1
+OR articleonetwo articleonetwosix
+1|april|https://simple.wikipedia.org/wiki?curid=1
+2|august|https://simple.wikipedia.org/wiki?curid=2
+6|art|https://simple.wikipedia.org/wiki?curid=6
+OR articleone articletwo articleeight
+1|april|https://simple.wikipedia.org/wiki?curid=1
+2|august|https://simple.wikipedia.org/wiki?curid=2
+8|a|https://simple.wikipedia.org/wiki?curid=8
+OR beekeeper firefighter NOT arizona
+OR april
+1|april|https://simple.wikipedia.org/wiki?curid=1
+53|angola|https://simple.wikipedia.org/wiki?curid=53
+67|wikipedia:bas|https://simple.wikipedia.org/wiki?curid=67
+OR computer desk mouse NOT table
+13|al|https://simple.wikipedia.org/wiki?curid=13
+17|ado|https://simple.wikipedia.org/wiki?curid=17
+21|arithmetic|https://simple.wikipedia.org/wiki?curid=21
+32|abbreviation|https://simple.wikipedia.org/wiki?curid=32
+45|algebra|https://simple.wikipedia.org/wiki?curid=45
+48|astronomy|https://simple.wikipedia.org/wiki?curid=48
+57|archaeology|https://simple.wikipedia.org/wiki?curid=57
+69|bo|https://simple.wikipedia.org/wiki?curid=69
+OR math calculator
+21|arithmetic|https://simple.wikipedia.org/wiki?curid=21
+45|algebra|https://simple.wikipedia.org/wiki?curid=45
+AND ompasnsnio NOT mouse
+OR month head
+1|april|https://simple.wikipedia.org/wiki?curid=1
+2|august|https://simple.wikipedia.org/wiki?curid=2
+27|australia|https://simple.wikipedia.org/wiki?curid=27
+51|asteroid|https://simple.wikipedia.org/wiki?curid=51
+66|wikipedia:bas|https://simple.wikipedia.org/wiki?curid=66
+8|a|https://simple.wikipedia.org/wiki?curid=8

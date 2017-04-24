@@ -1,0 +1,30 @@
+#include "word.h"
+#include "DSString.h"
+#include "DSvector.h"
+
+Word::Word()
+{
+private:
+    String name;
+    Vector<int> pageNumbers;
+    
+    bool masterCategory; //is the name of a category
+    Vector<string> keyWords; //if the word is a master category, this is the list of words it encompasses
+    bool subCategory;
+    String category;
+    
+public:
+    void addPageNumber(int); //add the page number the word is located at to the page number vector. if the vector already conatins
+    //the page number, don't add it again
+    void setMasterCategory(char*); //pass name of master category, set bool master = true
+    void setSubCategory(char*); //pass name of master category as well, set bool sub = true
+    
+    Vector<int>& getPageNumbers(); //returns the vector of page numbers
+    void addPageNumber();
+    
+    Word& operator==(char*); //check to see if it equals keywords, category, name
+    bool operator>(const Word&); //evaluates based on ascii value of "name". used to sort in alphabetical order
+    
+    
+}
+

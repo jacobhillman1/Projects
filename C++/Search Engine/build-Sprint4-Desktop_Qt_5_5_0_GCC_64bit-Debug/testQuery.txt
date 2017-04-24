@@ -1,0 +1,11 @@
+9
+OR articleonetwo NOT articletwo
+OR articleonetwo articleonetwosix
+OR articleone articletwo articleeight
+OR beekeeper firefighter NOT arizona
+OR april
+OR computer desk mouse NOT table
+OR math calculator
+AND ompasnsnio NOT mouse
+OR month head
+AND adobe

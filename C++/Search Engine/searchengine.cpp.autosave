@@ -1,0 +1,358 @@
+#include "searchengine.h"
+
+SearchEngine::SearchEngine()
+{
+
+}
+
+void SearchEngine::readFile(char fileName[])
+{
+    ifstream fin(fileName);
+    Article article;
+
+    while(!fin.eof())
+    {
+        handleHeader(fin, article);
+        handleParagraph(fin, article);
+    }
+}
+
+/*
+ * A function to create the Article objects associated
+ * with each artilce. Changes the Article that is passed
+ * to the function.
+ */
+void SearchEngine::handleHeader(ifstream &fin, Article& article)
+{
+    char temp[99];
+    bool cont = true;
+    String tempString;
+    String tempID;
+    String tempURL;
+    String tempTitle;
+
+    /* Skip past <doc */
+    fin >> temp;
+
+    fin >> temp;
+    tempString = temp;
+    if(tempString == "</doc>")
+        return;
+    /* Extract the ID number */
+    tempID = tempString.substring(4, tempString.size() - 1);
+
+    /* Extract the URL */
+    fin >> temp;
+    tempString = temp;
+    tempURL = tempString.substring(5, tempString.size() - 1);
+
+    /* Extract the title */
+    fin >> temp;
+    tempString = temp;
+    tempTitle = tempString.substring(7, tempString.size() - 2);
+
+    article.setID(tempID);
+    article.setURL(tempURL);
+    article.setTitle(tempTitle);
+
+}
+
+/*
+ * Read in all of the words in the article until you reach
+ * "</doc>".
+ * If the word is a duplicate, it will add the article object
+ * to the exisiting word.
+ */
+void SearchEngine::handleParagraph(ifstream& fin, Article& article)
+{
+    char temp[99];
+    String tempString;
+
+    while(true)
+    {
+        fin >> temp;
+        tempString = temp;
+        if(tempString == "</doc>")
+            break;
+        tempString.removePunctuation();
+        tempString.toLowerCase();
+
+        /* If the word isn't a stopword... */
+        if(!stopWords.contains(tempString))
+        {
+            /* If the word is alreay in the search tree, add the
+             * article object to the word object. */
+            if(searchWords.contains(tempString))
+            {
+                searchWords.find(tempString).addArticle(article);
+            }
+
+            /* Otherwise, insert a new Word object with the name of the
+             * word and the current Article object. */
+            else
+            {
+                searchWords.insert(Word(tempString, article));
+            }
+        }
+    }
+
+}
+
+/*
+ * Read in from the query file. Call "search" to search through the
+ * tree of words and eventually output the result.
+ */
+void SearchEngine::processQueries(char fileName[], char output[])
+{
+    fstream fin(fileName);
+    fstream listQuery(fileName);
+    ofstream out(output);
+    char temp[99];
+    char temp2[99];
+    String tempString;
+    int numQueries;
+
+    fin >> numQueries;
+    listQuery.getline(temp2, 80);
+    fin >> temp;
+    tempString = temp;
+
+    for(int i = 0; i < numQueries; i++)
+    {
+        listQuery.getline(temp2, 80);
+        out << temp2 << endl;
+        search(fin, out, tempString);
+    }
+}
+
+/*
+ * Depending on the keyword, call a function to look through the AVL tree and
+ * add the correct articles to the linked list relevantArticles
+ */
+void SearchEngine::search(fstream& fin, ofstream& out, String& tempString)
+{
+    LinkedList<Article> relevantArticles;
+    Vector<Article> sortedArticles;
+
+    if(tempString == "AND")
+    {
+        ANDWords(relevantArticles, fin, tempString);
+        for(int k = 0; k < relevantArticles.size(); k++)
+        {
+            sortedArticles.add(relevantArticles.get(k));
+        }
+        sortedArticles.sort();
+        for(int k = 0; k < relevantArticles.size(); k++)
+        {
+            out << sortedArticles.get(k) << endl;
+        }
+    }
+    else
+    {
+        ORWords(relevantArticles, fin, tempString);
+        for(int k = 0; k < relevantArticles.size(); k++)
+        {
+            sortedArticles.add(relevantArticles.get(k));
+        }
+        sortedArticles.sort();
+        for(int k = 0; k < relevantArticles.size(); k++)
+        {
+            out << sortedArticles.get(k) << endl;
+        }
+    }
+
+}
+/*
+ * Handle words if the AND operator is present
+ */
+void SearchEngine::ANDWords(LinkedList<Article>& relevantArticles, fstream& fin, String& tempString)
+{
+    char temp[99];
+    bool cont = true;
+    bool deleteArticle = true;
+    /* There will be up to 3 words to search for */
+    for(int n = 0; n < 4; n++)
+    {
+        if(!fin.eof())
+        {
+            fin >> temp;
+            tempString = temp;
+
+            if(tempString == "AND" || tempString == "OR")
+                return;
+            else if(tempString == "NOT")
+            {
+                NOTWords(relevantArticles, fin, tempString);
+                return;
+            }
+            else
+            {
+                // Add the articles for the word to the relevant articles linked list.
+                if(searchWords.contains(tempString))
+                {
+                    // If this is the first article...
+                    if(relevantArticles.isEmpty())
+                    {
+                        for(int i = 0; i < searchWords.find(tempString).getNumArticles(); i++)
+                            relevantArticles.add(searchWords.find(tempString).getArticle(i));
+                    }
+                    /* Compare each article currently in the Linked List to the
+                     * articles in the new word that is search. If the word cannot
+                     * be found in the article (the artilce is not in the vector
+                     * of the word object), then delete the article from the linkedlist.
+                     */
+                    else
+                    {
+                        /*
+                         * The search through the words must be restarted every
+                         * time a word is deleted because the indexes become innaccurate
+                         */
+                        while(cont)
+                        {
+                            if(relevantArticles.size() == 0)
+                                cont = false;
+                            for(int i = 0; i < relevantArticles.size(); i++)
+                            {
+                                deleteArticle = true;
+                                // If there is an article in common, don't delete the word
+                                for(int k = 0; k < searchWords.find(tempString).getNumArticles(); k++)
+                                {
+                                    if(relevantArticles.get(i) == searchWords.find(tempString).getArticle(k))
+                                        deleteArticle = false;
+                                }
+                                if(deleteArticle)
+                                {
+                                    relevantArticles.remove(i);
+                                    break;
+                                }
+                                /*
+                                 * if you've reached the end of the articles without having
+                                 * to delete anything, you've found all articles in common between the words
+                                 */
+                                if(i == relevantArticles.size() - 1)
+                                    cont = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*
+ * Handle words if the the NOT operator is present.
+ */
+void SearchEngine::NOTWords(LinkedList<Article>& relevantArticles, fstream& fin,
+                            String& tempString)
+{
+    char temp[99];
+    bool cont = true;
+    bool deleteArticle = true;
+
+    fin >> temp;
+    tempString = temp;
+
+    while(cont)
+    {
+        if(relevantArticles.size() == 0)
+            cont = false;
+        for(int i = 0; i < relevantArticles.size(); i++)
+        {
+            deleteArticle = false;
+            // If there is an article in common, DELETE the word
+            for(int k = 0; k < searchWords.find(tempString).getNumArticles(); k++)
+            {
+                if(relevantArticles.get(i) == searchWords.find(tempString).getArticle(k))
+                    deleteArticle = true;
+            }
+            if(deleteArticle)
+            {
+                relevantArticles.remove(i);
+                break;
+            }
+            /*
+             * if you've reached the end of the articles without having
+             * to delete anything, you've found all articles in common between the words
+             */
+            if(i == relevantArticles.size() - 1)
+                cont = false;
+        }
+    }
+
+    fin >> temp;
+    tempString = temp;
+}
+
+/*
+ * Handle words if the OR operator is present
+ */
+void SearchEngine::ORWords(LinkedList<Article>& relevantArticles, fstream& fin,
+                           String& tempString)
+{
+    char temp[99];
+    bool add = true;
+
+    for(int n = 0; n < 4; n++)
+    {
+        if(!fin.eof())
+        {
+            fin >> temp;
+            tempString = temp;
+            if(tempString == "AND" || tempString == "OR")
+                return;
+            else if(tempString == "NOT")
+            {
+                NOTWords(relevantArticles, fin, tempString);
+                return;
+            }
+            else
+            {
+                // Add the articles for the word to the relevant articles linked list.
+                if(searchWords.contains(tempString))
+                {
+                    // If this is the first article...
+                    if(relevantArticles.isEmpty())
+                    {
+                        for(int i = 0; i < searchWords.find(tempString).getNumArticles(); i++)
+                            relevantArticles.add(searchWords.find(tempString).getArticle(i));
+                    }
+
+                    /* If the article does not already exist in the vector,
+                     * then add it.
+                     */
+                    else
+                    {
+                        for(int i = 0;
+                            i < searchWords.find(tempString).getNumArticles(); i++)
+                        {
+                            add = true;
+                            for(int k = 0; k < relevantArticles.size(); k++)
+                            {
+                                if(relevantArticles.get(k) == searchWords.find(tempString).getArticle(i))
+                                    add = false;
+                            }
+                            if(add)
+                               relevantArticles.add(searchWords.find(tempString).getArticle(i));
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*
+ * Add stopwords to the vector.
+ */
+void SearchEngine::addStopWords(char fileName[])
+{
+    fstream words(fileName);
+    char temp[99];
+    while(!words.eof())
+    {
+        words >> temp;
+        stopWords.add(String(temp));
+    }
+
+}
